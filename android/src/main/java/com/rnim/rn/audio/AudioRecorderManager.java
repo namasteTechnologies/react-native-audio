@@ -52,6 +52,7 @@ class AudioRecorderManager extends ReactContextBaseJavaModule {
   private MediaRecorder recorder;
   private String currentOutputFile;
   private boolean isRecording = false;
+  private boolean meteringEnabled = false;
   private boolean isPaused = false;
   private Timer timer;
   private StopWatch stopWatch;
@@ -120,6 +121,7 @@ class AudioRecorderManager extends ReactContextBaseJavaModule {
       recorder.setAudioChannels(recordingSettings.getInt("Channels"));
       recorder.setAudioEncodingBitRate(recordingSettings.getInt("AudioEncodingBitRate"));
       recorder.setOutputFile(recordingPath);
+      meteringEnabled = recordingSettings.getBoolean("MeteringEnabled");
     }
     catch(final Exception e) {
       logAndRejectPromise(promise, "COULDNT_CONFIGURE_MEDIA_RECORDER" , "Make sure you've added RECORD_AUDIO permission to your AndroidManifest.xml file "+e.getMessage());
@@ -283,6 +285,9 @@ class AudioRecorderManager extends ReactContextBaseJavaModule {
         if (!isPaused) {
           WritableMap body = Arguments.createMap();
           body.putDouble("currentTime", stopWatch.getTimeSeconds());
+          if(meteringEnabled){
+           body.putDouble("currentMetering", recorder.getMaxAmplitude());
+         }
           sendEvent("recordingProgress", body);
         }
       }
